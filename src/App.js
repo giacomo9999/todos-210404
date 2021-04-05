@@ -1,9 +1,10 @@
-import React, { useState, UseEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrashAlt } from "@fortawesome/free-solid-svg-icons";
 
 const App = () => {
+  const firstRender = useRef(true);
   const [inputValue, setInputValue] = useState("");
   const [todos, setTodos] = useState([]);
 
@@ -14,6 +15,28 @@ const App = () => {
     setTodos([...todos, { text: inputValue, id: uuidv4() }]);
     setInputValue("");
   };
+
+  const deleteTodo = (id) => {
+    const filteredTodos = todos.filter((entry) => entry.id !== id);
+    setTodos(filteredTodos);
+  };
+
+  useEffect(() => {
+    if (firstRender.current) {
+      console.log("First page load.");
+      firstRender.current = false;
+    } else {
+      localStorage.setItem("Todo", JSON.stringify([...todos]));
+      console.log("Not first page load.");
+    }
+  }, [todos]);
+
+  useEffect(() => {
+    if (localStorage.getItem !== null) {
+      const newTodos = localStorage.getItem("Todo");
+      setTodos(JSON.parse([...todos, newTodos]));
+    }
+  }, []);
 
   return (
     <div className="App">
@@ -33,7 +56,10 @@ const App = () => {
         {todos.map((entry) => (
           <div className="todo" key={entry.id}>
             <p>{entry.text}</p>
-            <FontAwesomeIcon icon={faTrashAlt} />
+            <FontAwesomeIcon
+              icon={faTrashAlt}
+              onClick={() => deleteTodo(entry.id)}
+            />
           </div>
         ))}
       </div>
